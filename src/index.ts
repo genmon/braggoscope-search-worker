@@ -119,7 +119,8 @@ export default {
 			} else if (path.startsWith('/build')) {
 				const { key } = (await request.json()) as any;
 				if (key !== env.BUILD_INDEX_KEY) {
-					return new Response(`Unauthorized. Use key: ${env.BUILD_INDEX_KEY}`, { status: 401 });
+					return new Response('Unauthorized', { status: 401 });
+					//return new Response(`Unauthorized. Use key: ${env.BUILD_INDEX_KEY}`, { status: 401 });
 				}
 				await indexAll(env);
 				return new Response('OK', { headers: CORS });
