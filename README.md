@@ -2,6 +2,8 @@
 
 Braggoscope search backend on a Cloudflare worker
 
+Stripped down version of the [Braggoscope search backend](https://github.com/genmon/braggoscope-search), used in production on [braggoscope.com](https://braggoscope.com).
+
 ## Setup
 
 ```bash
