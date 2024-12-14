@@ -41,6 +41,64 @@ async function getEpisodes(): Promise<Episode[]> {
 	return await fetch('https://www.braggoscope.com/episodes.json').then((res) => res.json());
 }
 
+async function indexSome(env: Env, episodes: Episode[]): Promise<void> {
+	const { data: embeddings } = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
+		text: episodes.map((episode) => episode.description),
+	});
+
+	const vectors = episodes.map((episode, i) => ({
+		id: episode.id,
+		values: embeddings[i],
+		metadata: {
+			title: episode.title,
+			published: episode.published,
+			permalink: episode.permalink,
+		},
+	}));
+
+	// Upsert the embeddings into the database
+	await env.VECTORIZE.upsert(vectors);
+}
+
+async function indexAll(env: Env): Promise<void> {
+	const episodes = await getEpisodes();
+
+	const PAGE_SIZE = 5;
+	for (let i = 0; i < episodes.length; i += PAGE_SIZE) {
+		try {
+			await retry(async () => {
+				await indexSome(env, episodes.slice(i, i + PAGE_SIZE));
+			});
+		} catch (err) {
+			console.error(err);
+			throw err;
+		}
+	}
+}
+
+async function search(env: Env, query: string) {
+	// Get the embedding for the query
+	const { data: embeddings } = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
+		text: [query],
+	});
+
+	// Search the index for the query vector
+	const nearest: any = await env.VECTORIZE.query(embeddings[0], {
+		topK: 15,
+		returnValues: false,
+		returnMetadata: 'all',
+	});
+
+	// Convert to a form useful to the client
+	const found: Found[] = nearest.matches.map((match: any) => ({
+		id: match.id,
+		...match.metadata,
+		score: match.score,
+	}));
+
+	return found;
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const method = request.method;
@@ -54,7 +112,12 @@ export default {
 			}
 		} else if (method === 'POST') {
 			if (path.startsWith('/search')) {
-				return new Response('{}', { headers: CORS });
+				const { query } = (await request.json()) as any;
+				const found = await search(env, query);
+				return Response.json({ episodes: found }, { headers: CORS });
+			} else if (path.startsWith('/build')) {
+				await indexAll(env);
+				return new Response('OK', { headers: CORS });
 			} else {
 				return new Response('Not Found', { status: 404 });
 			}
@@ -65,3 +128,16 @@ export default {
 		return new Response('Method Not Allowed', { status: 405 });
 	},
 } satisfies ExportedHandler<Env>;
+
+// API calls be a bit flaky. Here's a helper to retry them a few times
+async function retry<T>(fn: () => Promise<T>, retries: number = 5): Promise<T> {
+	try {
+		return await fn();
+	} catch (err) {
+		if (retries > 0) {
+			console.log('Retrying...');
+			return await retry(fn, retries - 1);
+		}
+		throw err;
+	}
+}
