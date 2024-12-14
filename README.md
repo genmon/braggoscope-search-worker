@@ -8,6 +8,12 @@ Braggoscope search backend on a Cloudflare worker
 npx wrangler vectorize create braggoscope-index --preset @cf/baai/bge-base-en-v1.5
 ```
 
+In the Cloudflare Dashboard, set the following environment variables:
+
+- `BUILD_INDEX_KEY`: The key to use for building the index
+
+If building the index isn't working, check this is present. (The `keep_vars` setting in `wrangler.toml` should keep this available through deploys.)
+
 ## Deploy
 
 ```bash
