@@ -14,6 +14,7 @@
 export interface Env {
 	VECTORIZE: Vectorize;
 	AI: Ai;
+	BUILD_INDEX_KEY: string;
 }
 
 interface EmbeddingResponse {
@@ -116,6 +117,10 @@ export default {
 				const found = await search(env, query);
 				return Response.json({ episodes: found }, { headers: CORS });
 			} else if (path.startsWith('/build')) {
+				const { key } = (await request.json()) as any;
+				if (key !== env.BUILD_INDEX_KEY) {
+					return new Response('Unauthorized', { status: 401 });
+				}
 				await indexAll(env);
 				return new Response('OK', { headers: CORS });
 			} else {

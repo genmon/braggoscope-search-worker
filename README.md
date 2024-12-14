@@ -25,8 +25,10 @@ curl --json '{"query": "hello"}' https://braggoscope-search-worker.genmon.worker
 Build each time a new episode is added:
 
 ```bash
-curl -X POST https://braggoscope-search-worker.genmon.workers.dev/build
+curl --json '{"key": "BUILD_INDEX_KEY"} https://braggoscope-search-worker.genmon.workers.dev/build
 ```
+
+(Replace `BUILD_INDEX_KEY` with the actual key. This is to prevent re-building the index by accident.)
 
 Search:
 
