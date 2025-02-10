@@ -36,6 +36,7 @@ async function indexSome(env: Env, episodes: Episode[]): Promise<void> {
 			title: episode.title,
 			published: episode.published,
 			permalink: episode.permalink,
+			description: episode.description,
 		},
 	}));
 
@@ -59,7 +60,7 @@ async function indexAll(env: Env): Promise<void> {
 	}
 }
 
-async function search(env: Env, query: string) {
+async function search(env: Env, query: string, includeDescription: boolean) {
 	// Get the embedding for the query
 	const { data: embeddings } = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
 		text: [query],
@@ -69,7 +70,7 @@ async function search(env: Env, query: string) {
 	const nearest: any = await env.VECTORIZE.query(embeddings[0], {
 		topK: 15,
 		returnValues: false,
-		returnMetadata: 'all',
+		returnMetadata: includeDescription ? 'all' : 'indexed',
 	});
 
 	// Convert to a form useful to the client
@@ -95,8 +96,10 @@ export default {
 			}
 		} else if (method === 'POST') {
 			if (path.startsWith('/search')) {
-				const { query } = (await request.json()) as any;
-				const found = await search(env, query);
+				const body = await request.json();
+				const { query } = body as any;
+				const includeDescription = (body as any).includeDescription === true;
+				const found = await search(env, query, includeDescription);
 				return Response.json({ episodes: found }, { headers: CORS });
 			} else if (path.startsWith('/build')) {
 				const { key } = (await request.json()) as any;

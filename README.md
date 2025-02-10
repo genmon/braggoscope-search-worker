@@ -8,6 +8,12 @@ Stripped down version of the [Braggoscope search backend](https://github.com/gen
 
 ```bash
 npx wrangler vectorize create braggoscope-index --preset @cf/baai/bge-base-en-v1.5
+npx wrangler vectorize create-metadata-index braggoscope-index \
+  --property-name=title --type=string
+npx wrangler vectorize create-metadata-index braggoscope-index \
+  --property-name=published --type=string
+npx wrangler vectorize create-metadata-index braggoscope-index \
+  --property-name=permalink --type=string
 ```
 
 In the Cloudflare Dashboard, set the following environment variables:
