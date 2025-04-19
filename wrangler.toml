@@ -118,4 +118,4 @@ index_name = "braggoscope-index"
 
 [triggers]
 # Schedule a cron trigger at 12:00 UTC on Thursdays
-crons = ["0 12 * * 4"]
+crons = ["0 12 * * thu"]
