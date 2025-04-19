@@ -118,6 +118,10 @@ export default {
 
 		return new Response('Method Not Allowed', { status: 405 });
 	},
+
+	async scheduled(event, env, ctx) {
+		await indexAll(env);
+	},
 } satisfies ExportedHandler<Env>;
 
 // API calls be a bit flaky. Here's a helper to retry them a few times
