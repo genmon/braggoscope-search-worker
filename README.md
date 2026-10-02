@@ -39,7 +39,11 @@ Set these in the dashboard (Workers & Pages → braggoscope-search-worker → Se
 
 `wrangler dev` can't see dashboard secrets. For local development, copy `.dev.vars.example` to `.dev.vars` and fill in stand-in values.
 
-### 4. Automatic deploys
+### 4. Custom domain
+
+`braggoscope.com`'s DNS zone must be on Cloudflare in the same account (nameservers moved there 2026-10-02). `routes` in `wrangler.jsonc` attaches **`search.braggoscope.com`** to the worker as a custom domain on deploy; Cloudflare creates the DNS record and certificate. The site (`docs/_includes/scripts.html`, `docs/assets/js/webapplet.js`) and braggoscope's pipeline call this hostname. `braggoscope-search-worker.genmon.workers.dev` also still works.
+
+### 5. Automatic deploys
 
 Connect the worker to the GitHub repo `genmon/braggoscope-search-worker` with Workers Builds (Workers & Pages → braggoscope-search-worker → Settings → Build), deploying `main`. See Deploy.
 
@@ -68,7 +72,7 @@ npx wrangler deploy
 ## Test
 
 ```bash
-curl --json '{"query": "hello"}' https://braggoscope-search-worker.genmon.workers.dev/search
+curl --json '{"query": "hello"}' https://search.braggoscope.com/search
 ```
 
 ## Usage
@@ -76,7 +80,7 @@ curl --json '{"query": "hello"}' https://braggoscope-search-worker.genmon.worker
 Build each time a new episode is added:
 
 ```bash
-curl --json '{"key": "BUILD_INDEX_KEY"}' https://braggoscope-search-worker.genmon.workers.dev/build
+curl --json '{"key": "BUILD_INDEX_KEY"}' https://search.braggoscope.com/build
 ```
 
 (Replace `BUILD_INDEX_KEY` with the actual key. This is to prevent re-building the index by accident.)
@@ -84,7 +88,7 @@ curl --json '{"key": "BUILD_INDEX_KEY"}' https://braggoscope-search-worker.genmo
 Search:
 
 ```bash
-curl --json '{"query": "the biggest planet"}' https://braggoscope-search-worker.genmon.workers.dev/search
+curl --json '{"query": "the biggest planet"}' https://search.braggoscope.com/search
 ```
 
 Transcribe an MP3 with Deepgram Nova-3 (used by braggoscope's `bragg transcribe raw`; query parameters are Nova-3 options):
@@ -92,5 +96,5 @@ Transcribe an MP3 with Deepgram Nova-3 (used by braggoscope's `bragg transcribe 
 ```bash
 curl -X POST -H "Authorization: Bearer $TRANSCRIBE_KEY" -H "Content-Type: audio/mpeg" \
   --data-binary @episode.mp3 \
-  "https://braggoscope-search-worker.genmon.workers.dev/transcribe?diarize=true&utterances=true&smart_format=true&language=en"
+  "https://search.braggoscope.com/transcribe?diarize=true&utterances=true&smart_format=true&language=en"
 ```

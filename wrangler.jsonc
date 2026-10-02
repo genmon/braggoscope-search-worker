@@ -7,6 +7,11 @@
 	"compatibility_date": "2026-10-02",
 	"compatibility_flags": ["nodejs_compat"],
 
+	// Public URL. braggoscope.com's DNS is on Cloudflare (same account), so the
+	// custom domain gets its DNS record and certificate automatically. The
+	// workers.dev URL stays enabled for anything still pointing at it.
+	"routes": [{ "pattern": "search.braggoscope.com", "custom_domain": true }],
+
 	// Secrets are set in the dashboard (production) and .dev.vars (local).
 	// Listing them here types Env (`wrangler types`), warns in `wrangler dev`
 	// if one is missing, and stops `wrangler deploy` if one isn't set.
