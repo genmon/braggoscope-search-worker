@@ -1,0 +1,11 @@
+# Copy to .dev.vars (gitignored) for `wrangler dev`.
+# In production these are Worker secrets: set them in the Cloudflare dashboard
+# (Workers & Pages → braggoscope-search-worker → Settings → Variables and Secrets)
+# or with `npx wrangler secret put NAME`. See "Rebuilding the backend" in README.md.
+
+# Shared key for POST /build. Any random string; locally it can be anything.
+BUILD_INDEX_KEY=
+
+# Cloudflare API token for calling the braggoscope-aig AI Gateway over REST.
+# Permissions: Workers AI: Read, AI Gateway: Run, AI Gateway: Read.
+CLOUDFLARE_AIG_TOKEN=
