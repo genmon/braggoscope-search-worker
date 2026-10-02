@@ -1,0 +1,39 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "braggoscope-search-worker",
+	"main": "src/index.ts",
+	// matt@interconnected.org; the login also has access to Inanimate
+	"account_id": "23bce2d30cbf81b333a137a43590ba43",
+	"compatibility_date": "2026-10-02",
+	"compatibility_flags": ["nodejs_compat"],
+
+	// Required because we set secrets in the web dashboard
+	"keep_vars": true,
+	// Secrets set in the dashboard (`wrangler types` reads this to type Env)
+	"secrets": {
+		"required": ["BUILD_INDEX_KEY"],
+	},
+
+	// Workers Logs
+	// https://developers.cloudflare.com/workers/observability/logs/workers-logs/
+	"observability": {
+		"enabled": true,
+	},
+
+	"ai": {
+		"binding": "AI",
+		"remote": true,
+	},
+	"vectorize": [
+		{
+			"binding": "VECTORIZE",
+			"index_name": "braggoscope-index",
+			"remote": true,
+		},
+	],
+
+	"triggers": {
+		// 12:00 UTC on Thursdays, after the braggoscope weekly build
+		"crons": ["0 12 * * thu"],
+	},
+}

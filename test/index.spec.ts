@@ -1,25 +1,35 @@
-// test/index.spec.ts
-import { env, createExecutionContext, waitOnExecutionContext, SELF } from 'cloudflare:test';
+import { SELF } from 'cloudflare:test';
 import { describe, it, expect } from 'vitest';
-import worker from '../src/index';
 
-// For now, you'll need to do something like this to get a correctly-typed
-// `Request` to pass to `worker.fetch()`.
-const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
-
-describe('Hello World worker', () => {
-	it('responds with Hello World! (unit style)', async () => {
-		const request = new IncomingRequest('http://example.com');
-		// Create an empty context to pass to `worker.fetch()`.
-		const ctx = createExecutionContext();
-		const response = await worker.fetch(request, env, ctx);
-		// Wait for all `Promise`s passed to `ctx.waitUntil()` to settle before running test assertions
-		await waitOnExecutionContext(ctx);
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
+// Integration tests for routing and auth only: /search and an authorised /build
+// need the remote AI and Vectorize bindings, so they're smoke-tested by hand.
+describe('braggoscope-search-worker', () => {
+	it('404s GET requests', async () => {
+		const response = await SELF.fetch('https://example.com/');
+		expect(response.status).toBe(404);
 	});
 
-	it('responds with Hello World! (integration style)', async () => {
-		const response = await SELF.fetch('https://example.com');
-		expect(await response.text()).toMatchInlineSnapshot(`"Hello World!"`);
+	it('answers CORS preflight', async () => {
+		const response = await SELF.fetch('https://example.com/search', { method: 'OPTIONS' });
+		expect(response.status).toBe(200);
+		expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+	});
+
+	it('rejects /build without the right key', async () => {
+		const response = await SELF.fetch('https://example.com/build', {
+			method: 'POST',
+			body: JSON.stringify({ key: 'wrong' }),
+		});
+		expect(response.status).toBe(401);
+	});
+
+	it('404s unknown POST paths', async () => {
+		const response = await SELF.fetch('https://example.com/nope', { method: 'POST', body: '{}' });
+		expect(response.status).toBe(404);
+	});
+
+	it('405s other methods', async () => {
+		const response = await SELF.fetch('https://example.com/search', { method: 'PUT' });
+		expect(response.status).toBe(405);
 	});
 });

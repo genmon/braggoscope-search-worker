@@ -1,3 +1,5 @@
+// Declared by hand: `wrangler types` emits the deprecated V1 `VectorizeIndex`
+// type for Vectorize bindings, but braggoscope-index is a V2 index.
 export interface Env {
 	VECTORIZE: Vectorize;
 	AI: Ai;
@@ -24,10 +26,19 @@ async function getEpisodes(): Promise<Episode[]> {
 	return await fetch('https://www.braggoscope.com/episodes.json').then((res) => res.json());
 }
 
+async function embed(env: Env, text: string[]): Promise<number[][]> {
+	const output = await env.AI.run('@cf/baai/bge-base-en-v1.5', { text });
+	if (!('data' in output) || !output.data) {
+		throw new Error('No embeddings returned');
+	}
+	return output.data;
+}
+
 async function indexSome(env: Env, episodes: Episode[]): Promise<void> {
-	const { data: embeddings } = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
-		text: episodes.map((episode) => episode.description),
-	});
+	const embeddings = await embed(
+		env,
+		episodes.map((episode) => episode.description),
+	);
 
 	const vectors = episodes.map((episode, i) => ({
 		id: episode.id,
@@ -62,9 +73,7 @@ async function indexAll(env: Env): Promise<void> {
 
 async function search(env: Env, query: string, includeDescription: boolean) {
 	// Get the embedding for the query
-	const { data: embeddings } = await env.AI.run('@cf/baai/bge-base-en-v1.5', {
-		text: [query],
-	});
+	const embeddings = await embed(env, [query]);
 
 	// Search the index for the query vector
 	const nearest: any = await env.VECTORIZE.query(embeddings[0], {
