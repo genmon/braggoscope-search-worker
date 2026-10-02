@@ -11,6 +11,9 @@
 	// custom domain gets its DNS record and certificate automatically. The
 	// workers.dev URL stays enabled for anything still pointing at it.
 	"routes": [{ "pattern": "search.braggoscope.com", "custom_domain": true }],
+	// Must be explicit: setting `routes` turns workers.dev off by default, and the
+	// site and pipeline still call braggoscope-search-worker.genmon.workers.dev.
+	"workers_dev": true,
 
 	// Secrets are set in the dashboard (production) and .dev.vars (local).
 	// Listing them here types Env (`wrangler types`), warns in `wrangler dev`
