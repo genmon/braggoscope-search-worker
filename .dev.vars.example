@@ -5,7 +5,3 @@
 
 # Shared key for POST /build. Any random string; locally it can be anything.
 BUILD_INDEX_KEY=
-
-# Cloudflare API token for calling the braggoscope-aig AI Gateway over REST.
-# Permissions: Workers AI: Read, AI Gateway: Run, AI Gateway: Read.
-CLOUDFLARE_AIG_TOKEN=

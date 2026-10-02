@@ -24,30 +24,21 @@ Then fill it: `POST /build` (see Usage) or wait for the Thursday cron.
 
 ### 2. AI Gateway
 
-Create a gateway named **`braggoscope-aig`** (dashboard: AI → AI Gateway). All of the worker's Workers AI calls go through it. It is an *authenticated* gateway: requests without a valid `cf-aig-authorization` token get `2009 Unauthorized`.
+Create a gateway named **`braggoscope-aig`** (dashboard: AI → AI Gateway). The worker passes it as `{ gateway: { id: 'braggoscope-aig' } }` to `env.AI.run`, so the binding authenticates and no API token is needed.
 
-### 3. API token
+Audio transcription can't use it yet (tested 2026-10-02): the binding route rejects streamed bodies ("AI Gateway does not support ReadableStreams yet"), and the REST route through the gateway rejects binary audio (`7000 Invalid request body`). Calls to `@cf/deepgram/nova-3` go straight to Workers AI and appear in Workers AI usage, not the gateway logs.
 
-Create a Cloudflare API token (My Profile → API Tokens → Create Token → Custom), scoped to the matt@interconnected.org account, with:
-
-- **Workers AI: Read**: run models
-- **AI Gateway: Run**: call the authenticated `braggoscope-aig` gateway
-- **AI Gateway: Read**: list and inspect gateways when debugging
-
-The binding (`env.AI`) authenticates itself, but requests the worker makes to the gateway's REST URL with `fetch()` need this token.
-
-### 4. Worker secrets
+### 3. Worker secrets
 
 Set these in the dashboard (Workers & Pages → braggoscope-search-worker → Settings → Variables and Secrets) or with `npx wrangler secret put NAME`. `wrangler.jsonc` lists the required ones under `secrets.required`, and `keep_vars` stops deploys from wiping them.
 
 | Secret | What it is |
 |---|---|
 | `BUILD_INDEX_KEY` | Any random string; callers of `POST /build` must send it |
-| `CLOUDFLARE_AIG_TOKEN` | The API token from step 3 |
 
 For local development, copy `.dev.vars.example` to `.dev.vars` and fill it in.
 
-### 5. Automatic deploys
+### 4. Automatic deploys
 
 Connect the worker to the GitHub repo `genmon/braggoscope-search-worker` with Workers Builds (Workers & Pages → braggoscope-search-worker → Settings → Build), deploying `main`. See Deploy.
 
