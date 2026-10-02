@@ -36,6 +36,10 @@ After changing `wrangler.jsonc`, regenerate `worker-configuration.d.ts` with `np
 
 ## Deploy
 
+Pushing to `main` deploys automatically (Cloudflare Workers Builds, connected to this GitHub repo). Build Node version comes from `.nvmrc`.
+
+To deploy by hand, e.g. from a branch:
+
 ```bash
 npx wrangler deploy
 ```
