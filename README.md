@@ -30,13 +30,13 @@ Audio transcription can't use it yet (tested 2026-10-02): the binding route reje
 
 ### 3. Worker secrets
 
-Set these in the dashboard (Workers & Pages → braggoscope-search-worker → Settings → Variables and Secrets) or with `npx wrangler secret put NAME`. `wrangler.jsonc` lists the required ones under `secrets.required`, and `keep_vars` stops deploys from wiping them.
+Set these in the dashboard (Workers & Pages → braggoscope-search-worker → Settings → Variables and Secrets) or with `npx wrangler secret put NAME`. Deploys never remove secrets. `wrangler.jsonc` lists them under `secrets.required`, so `wrangler deploy` refuses to deploy if one is missing.
 
 | Secret | What it is |
 |---|---|
 | `BUILD_INDEX_KEY` | Any random string; callers of `POST /build` must send it |
 
-For local development, copy `.dev.vars.example` to `.dev.vars` and fill it in.
+`wrangler dev` can't see dashboard secrets. For local development, copy `.dev.vars.example` to `.dev.vars` and fill in stand-in values.
 
 ### 4. Automatic deploys
 

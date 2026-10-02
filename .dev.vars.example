@@ -1,7 +1,6 @@
-# Copy to .dev.vars (gitignored) for `wrangler dev`.
-# In production these are Worker secrets: set them in the Cloudflare dashboard
-# (Workers & Pages → braggoscope-search-worker → Settings → Variables and Secrets)
-# or with `npx wrangler secret put NAME`. See "Rebuilding the backend" in README.md.
+# Local stand-ins for the Worker's secrets, for `wrangler dev` only.
+# Copy to .dev.vars (gitignored). `wrangler dev` can't see the real values: those
+# are secrets set in the Cloudflare dashboard. See "Rebuilding the backend" in README.md.
 
-# Shared key for POST /build. Any random string; locally it can be anything.
+# Shared key for POST /build. Locally it can be any string.
 BUILD_INDEX_KEY=
