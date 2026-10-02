@@ -28,6 +28,23 @@ describe('braggoscope-search-worker', () => {
 		expect(response.status).toBe(404);
 	});
 
+	it('rejects /transcribe without a key', async () => {
+		const response = await SELF.fetch('https://example.com/transcribe', {
+			method: 'POST',
+			body: 'not really audio',
+		});
+		expect(response.status).toBe(401);
+	});
+
+	it('rejects /transcribe with the wrong key', async () => {
+		const response = await SELF.fetch('https://example.com/transcribe', {
+			method: 'POST',
+			headers: { Authorization: 'Bearer wrong' },
+			body: 'not really audio',
+		});
+		expect(response.status).toBe(401);
+	});
+
 	it('405s other methods', async () => {
 		const response = await SELF.fetch('https://example.com/search', { method: 'PUT' });
 		expect(response.status).toBe(405);

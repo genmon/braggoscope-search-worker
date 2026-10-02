@@ -35,6 +35,7 @@ Set these in the dashboard (Workers & Pages → braggoscope-search-worker → Se
 | Secret | What it is |
 |---|---|
 | `BUILD_INDEX_KEY` | Any random string; callers of `POST /build` must send it |
+| `TRANSCRIBE_KEY` | Random string; the braggoscope pipeline sends it as `Authorization: Bearer …` to `POST /transcribe`. Keep a copy in braggoscope's `.env` as `TRANSCRIBE_KEY` |
 
 `wrangler dev` can't see dashboard secrets. For local development, copy `.dev.vars.example` to `.dev.vars` and fill in stand-in values.
 
@@ -84,4 +85,12 @@ Search:
 
 ```bash
 curl --json '{"query": "the biggest planet"}' https://braggoscope-search-worker.genmon.workers.dev/search
+```
+
+Transcribe an MP3 with Deepgram Nova-3 (used by braggoscope's `bragg transcribe raw`; query parameters are Nova-3 options):
+
+```bash
+curl -X POST -H "Authorization: Bearer $TRANSCRIBE_KEY" -H "Content-Type: audio/mpeg" \
+  --data-binary @episode.mp3 \
+  "https://braggoscope-search-worker.genmon.workers.dev/transcribe?diarize=true&utterances=true&smart_format=true&language=en"
 ```

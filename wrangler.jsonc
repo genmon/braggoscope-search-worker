@@ -11,7 +11,7 @@
 	// Listing them here types Env (`wrangler types`), warns in `wrangler dev`
 	// if one is missing, and stops `wrangler deploy` if one isn't set.
 	"secrets": {
-		"required": ["BUILD_INDEX_KEY"],
+		"required": ["BUILD_INDEX_KEY", "TRANSCRIBE_KEY"],
 	},
 
 	// Workers Logs

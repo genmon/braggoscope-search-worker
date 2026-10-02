@@ -4,6 +4,7 @@ export interface Env {
 	VECTORIZE: Vectorize;
 	AI: Ai;
 	BUILD_INDEX_KEY: string;
+	TRANSCRIBE_KEY: string;
 }
 
 const CORS = {
@@ -26,8 +27,10 @@ async function getEpisodes(): Promise<Episode[]> {
 	return await fetch('https://www.braggoscope.com/episodes.json').then((res) => res.json());
 }
 
+const GATEWAY = { gateway: { id: 'braggoscope-aig' } };
+
 async function embed(env: Env, text: string[]): Promise<number[][]> {
-	const output = await env.AI.run('@cf/baai/bge-base-en-v1.5', { text });
+	const output = await env.AI.run('@cf/baai/bge-base-en-v1.5', { text }, GATEWAY);
 	if (!('data' in output) || !output.data) {
 		throw new Error('No embeddings returned');
 	}
@@ -92,6 +95,35 @@ async function search(env: Env, query: string, includeDescription: boolean) {
 	return found;
 }
 
+// Nova-3 goes straight to Workers AI, not through braggoscope-aig: the gateway
+// can't carry audio yet (tested 2026-10-02 — the binding route rejects streamed
+// bodies, and the REST route rejects binary ones). See README.
+async function transcribe(request: Request, env: Env): Promise<Response> {
+	const auth = request.headers.get('Authorization');
+	if (!env.TRANSCRIBE_KEY || auth !== `Bearer ${env.TRANSCRIBE_KEY}`) {
+		return new Response('Unauthorized', { status: 401 });
+	}
+	if (!request.body) {
+		return Response.json({ error: 'No audio in request body' }, { status: 400 });
+	}
+	const options: Record<string, string | boolean> = {};
+	for (const [key, value] of new URL(request.url).searchParams) {
+		options[key] = value === 'true' ? true : value === 'false' ? false : value;
+	}
+	try {
+		const output = await env.AI.run('@cf/deepgram/nova-3', {
+			audio: {
+				body: request.body,
+				contentType: request.headers.get('Content-Type') ?? 'audio/mpeg',
+			},
+			...options,
+		} as Ai_Cf_Deepgram_Nova_3_Input);
+		return Response.json(output);
+	} catch (err) {
+		return Response.json({ error: String(err) }, { status: 502 });
+	}
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const method = request.method;
@@ -118,6 +150,8 @@ export default {
 				}
 				await indexAll(env);
 				return new Response('OK', { headers: CORS });
+			} else if (path.startsWith('/transcribe')) {
+				return transcribe(request, env);
 			} else {
 				return new Response('Not Found', { status: 404 });
 			}

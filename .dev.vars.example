@@ -4,3 +4,7 @@
 
 # Shared key for POST /build. Locally it can be any string.
 BUILD_INDEX_KEY=
+
+# Shared key for POST /transcribe (the braggoscope pipeline sends it as a Bearer
+# token; it lives in braggoscope's .env as TRANSCRIBE_KEY). Locally any string.
+TRANSCRIBE_KEY=
