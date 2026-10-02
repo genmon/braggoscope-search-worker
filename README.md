@@ -25,7 +25,7 @@ If building the index isn't working, check this is present. (The `keep_vars` set
 ## Development
 
 ```bash
-nvm use            # Node 24 from .nvmrc (npm 11; npm 10 crashes resolving vitest's peers)
+nvm use            # Node 24 from .nvmrc. Use npm 11 to add/upgrade deps: npm 10 crashes resolving vitest's peers without a lockfile
 npm install
 npm run typecheck
 npm test           # routing/auth only; AI + Vectorize are remote-only
